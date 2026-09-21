@@ -215,6 +215,78 @@ textarea#answer-input:focus {
   margin: 6px 0 0;
 }
 
+.camera-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.camera-btn {
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: none;
+  background: var(--accent-light);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.camera-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+
+.camera-btn:disabled {
+  background: var(--border);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.camera-btn.active {
+  background: linear-gradient(135deg, var(--warn), #ff7a70);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(244, 72, 63, 0.35);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.camera-status {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.camera-preview {
+  width: 100%;
+  max-height: 260px;
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  background: #000;
+  object-fit: cover;
+  margin-bottom: 12px;
+  transform: scaleX(-1);
+}
+
+.replay-card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+.replay-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 0 0 8px;
+}
+
+.replay-video {
+  width: 100%;
+  border-radius: 12px;
+  display: block;
+  background: #000;
+}
+
 .voice-row {
   display: flex;
   align-items: center;

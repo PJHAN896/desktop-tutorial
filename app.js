@@ -159,6 +159,8 @@ function showQuestion() {
   input.value = '';
   document.getElementById('char-count').textContent = '0';
   resetVoiceInput();
+  stopCamera();
+  resetReplay();
   startTimer();
   input.focus();
 }
@@ -301,7 +303,107 @@ function resetVoiceInput() {
   }
 }
 
-function submitAnswer() {
+const camera = {
+  stream: null,
+  recorder: null,
+  chunks: [],
+  active: false,
+  recordedUrl: null,
+};
+
+function getSupportedVideoMimeType() {
+  if (!window.MediaRecorder) return '';
+  const candidates = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'];
+  return candidates.find((type) => MediaRecorder.isTypeSupported(type)) || '';
+}
+
+function setupCamera() {
+  const camBtn = document.getElementById('camera-btn');
+  const camStatus = document.getElementById('camera-status');
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+    camBtn.disabled = true;
+    camBtn.textContent = '카메라 녹화 미지원';
+    camStatus.textContent = '이 브라우저는 카메라 녹화를 지원하지 않아요. 카메라 없이도 연습은 그대로 가능해요.';
+    return;
+  }
+  camBtn.addEventListener('click', toggleCamera);
+}
+
+async function toggleCamera() {
+  if (camera.active) {
+    stopCamera();
+    return;
+  }
+  const camBtn = document.getElementById('camera-btn');
+  const camStatus = document.getElementById('camera-status');
+  const preview = document.getElementById('camera-preview');
+
+  try {
+    camera.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+  } catch (error) {
+    camStatus.textContent = '카메라 권한을 허용해주세요. (카메라 없이도 연습은 계속할 수 있어요)';
+    return;
+  }
+
+  preview.srcObject = camera.stream;
+  preview.classList.remove('hidden');
+  camera.active = true;
+  camBtn.textContent = '📹 카메라 끄기';
+  camBtn.classList.add('active');
+  camStatus.textContent = '';
+
+  camera.chunks = [];
+  const mimeType = getSupportedVideoMimeType();
+  try {
+    camera.recorder = mimeType ? new MediaRecorder(camera.stream, { mimeType }) : new MediaRecorder(camera.stream);
+  } catch (error) {
+    camStatus.textContent = '이 브라우저에서는 녹화를 시작할 수 없어요. 카메라 미리보기만 가능합니다.';
+    return;
+  }
+  camera.recorder.addEventListener('dataavailable', (event) => {
+    if (event.data && event.data.size > 0) camera.chunks.push(event.data);
+  });
+  camera.recorder.start();
+}
+
+function stopCameraRecording() {
+  return new Promise((resolve) => {
+    if (!camera.recorder || camera.recorder.state === 'inactive') {
+      resolve(null);
+      return;
+    }
+    camera.recorder.addEventListener('stop', () => {
+      const mimeType = camera.recorder.mimeType || 'video/webm';
+      if (camera.recordedUrl) URL.revokeObjectURL(camera.recordedUrl);
+      camera.recordedUrl = camera.chunks.length ? URL.createObjectURL(new Blob(camera.chunks, { type: mimeType })) : null;
+      resolve(camera.recordedUrl);
+    }, { once: true });
+    camera.recorder.stop();
+  });
+}
+
+function stopCamera() {
+  const camBtn = document.getElementById('camera-btn');
+  const preview = document.getElementById('camera-preview');
+  if (camera.recorder && camera.recorder.state !== 'inactive') camera.recorder.stop();
+  if (camera.stream) camera.stream.getTracks().forEach((track) => track.stop());
+  camera.stream = null;
+  camera.active = false;
+  preview.classList.add('hidden');
+  preview.srcObject = null;
+  camBtn.textContent = '📹 카메라로 연습하기';
+  camBtn.classList.remove('active');
+}
+
+function resetReplay() {
+  const replayCard = document.getElementById('replay-card');
+  const replayVideo = document.getElementById('replay-video');
+  replayCard.classList.add('hidden');
+  replayVideo.removeAttribute('src');
+  replayVideo.load();
+}
+
+async function submitAnswer() {
   const input = document.getElementById('answer-input');
   const text = input.value;
   stopTimer();
@@ -313,9 +415,25 @@ function submitAnswer() {
   item.feedback = feedback;
   item.missing = missing;
   item.seconds = state.timerSeconds;
+
+  const recordedUrl = camera.active ? await stopCameraRecording() : null;
+  stopCamera();
+  renderReplay(recordedUrl);
+
   renderFeedback(score, feedback);
   showView('feedback');
   loadFollowUp(item, missing);
+}
+
+function renderReplay(url) {
+  const replayCard = document.getElementById('replay-card');
+  const replayVideo = document.getElementById('replay-video');
+  if (url) {
+    replayVideo.src = url;
+    replayCard.classList.remove('hidden');
+  } else {
+    resetReplay();
+  }
 }
 
 function renderFeedback(score, feedback) {
@@ -444,8 +562,12 @@ function renderHistory() {
   });
 }
 
-document.getElementById('nav-home').addEventListener('click', () => showView('home'));
+document.getElementById('nav-home').addEventListener('click', () => {
+  stopCamera();
+  showView('home');
+});
 document.getElementById('nav-history').addEventListener('click', () => {
+  stopCamera();
   renderHistory();
   showView('history');
 });
@@ -459,4 +581,5 @@ document.getElementById('answer-input').addEventListener('input', (e) => {
 
 renderCategoryGrid();
 setupSpeechRecognition();
+setupCamera();
 showView('home');
