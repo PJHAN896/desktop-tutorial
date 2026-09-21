@@ -264,11 +264,12 @@ function submitAnswer() {
   item.feedback = feedback;
   item.missing = missing;
   item.seconds = state.timerSeconds;
-  renderFeedback(score, feedback, missing);
+  renderFeedback(score, feedback);
   showView('feedback');
+  loadFollowUp(item, missing);
 }
 
-function renderFeedback(score, feedback, missing) {
+function renderFeedback(score, feedback) {
   document.getElementById('score-value').textContent = score;
   const circle = document.getElementById('score-circle');
   circle.className = 'score-circle ' + (score >= 75 ? 'score-high' : score >= 50 ? 'score-mid' : 'score-low');
@@ -282,17 +283,38 @@ function renderFeedback(score, feedback, missing) {
     list.appendChild(li);
   });
 
-  const followupCard = document.getElementById('followup-card');
-  const item = state.session[state.currentIndex];
-  if (item.question.category === 'situational' || missing.length > 0) {
-    followupCard.classList.remove('hidden');
-    document.getElementById('followup-text').textContent = pickFollowUp(missing);
-  } else {
-    followupCard.classList.add('hidden');
-  }
-
   const isLast = state.currentIndex === state.session.length - 1;
   document.getElementById('next-btn').textContent = isLast ? '결과 보기' : '다음 질문';
+}
+
+async function loadFollowUp(item, missing) {
+  const followupCard = document.getElementById('followup-card');
+  const followupLabel = document.getElementById('followup-label');
+  const followupText = document.getElementById('followup-text');
+  followupCard.classList.remove('hidden');
+  followupLabel.textContent = '꼬리질문';
+  followupText.textContent = '생성 중…';
+
+  try {
+    const response = await fetch('/api/followup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        category: item.question.category,
+        question: item.question.text,
+        answer: item.answer,
+      }),
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!response.ok) throw new Error('followup request failed');
+    const data = await response.json();
+    if (!data.followup) throw new Error('empty followup');
+    followupLabel.textContent = 'AI 꼬리질문';
+    followupText.textContent = data.followup;
+  } catch (error) {
+    followupLabel.textContent = '꼬리질문';
+    followupText.textContent = pickFollowUp(missing);
+  }
 }
 
 function goNext() {

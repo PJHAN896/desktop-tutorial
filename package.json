@@ -1,0 +1,14 @@
+{
+  "name": "interview-practice",
+  "version": "1.0.0",
+  "private": true,
+  "description": "면접 대비 연습 웹앱 (Q&A + 피드백 + 음성 입력 + AI 꼬리질문)",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.127.0",
+    "express": "^5.2.1"
+  }
+}
