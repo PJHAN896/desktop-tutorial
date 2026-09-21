@@ -394,6 +394,26 @@ function analyzeVoiceAudio(samples) {
   return feedback;
 }
 
+function describeMediaError(error) {
+  const name = error && error.name;
+  if (name === 'NotAllowedError' || name === 'PermissionDeniedError' || name === 'SecurityError') {
+    return '카메라·마이크 권한이 거부됐어요. 주소창의 사이트 정보 아이콘에서 권한을 허용으로 바꿔주세요.';
+  }
+  if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+    return '카메라나 마이크 장치를 찾지 못했어요. 실제 웹캠/마이크가 연결·활성화되어 있는지, 가상 카메라 장치가 선택되어 있지는 않은지 확인해주세요.';
+  }
+  if (name === 'NotReadableError' || name === 'TrackStartError') {
+    return '카메라·마이크를 다른 프로그램이 사용 중이거나 장치에 문제가 있어요. 화상회의 앱 등을 종료하고 다시 시도해주세요.';
+  }
+  if (name === 'OverconstrainedError' || name === 'ConstraintNotSatisfiedError') {
+    return '선택된 카메라 장치가 요청한 설정을 지원하지 않아요.';
+  }
+  if (name === 'AbortError') {
+    return '카메라·마이크 시작이 중간에 중단됐어요. 다시 시도해주세요.';
+  }
+  return `카메라·마이크를 시작할 수 없어요. (${name || error})`;
+}
+
 async function toggleCamera() {
   if (camera.active) {
     stopCamera();
@@ -406,7 +426,7 @@ async function toggleCamera() {
   try {
     camera.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
   } catch (error) {
-    camStatus.textContent = '카메라·마이크 권한을 허용해주세요. (카메라 없이도 연습은 계속할 수 있어요)';
+    camStatus.textContent = `${describeMediaError(error)} (카메라 없이도 연습은 계속할 수 있어요)`;
     return;
   }
 
