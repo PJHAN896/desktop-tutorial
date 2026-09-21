@@ -161,6 +161,42 @@ textarea#answer-input {
   margin: 6px 0 0;
 }
 
+.voice-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.mic-btn {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: var(--accent-light);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mic-btn:disabled {
+  border-color: var(--border);
+  background: var(--bg);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.mic-btn.recording {
+  background: var(--warn);
+  border-color: var(--warn);
+  color: #fff;
+}
+
+.mic-status {
+  font-size: 12px;
+  color: var(--muted);
+}
+
 .score-card {
   display: flex;
   flex-direction: column;

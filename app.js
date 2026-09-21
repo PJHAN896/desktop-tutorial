@@ -158,14 +158,105 @@ function showQuestion() {
   const input = document.getElementById('answer-input');
   input.value = '';
   document.getElementById('char-count').textContent = '0';
+  resetVoiceInput();
   startTimer();
   input.focus();
+}
+
+const voice = {
+  recognition: null,
+  recognizing: false,
+  baseText: '',
+};
+
+function setupSpeechRecognition() {
+  const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const micBtn = document.getElementById('mic-btn');
+  const micStatus = document.getElementById('mic-status');
+
+  if (!SpeechRecognitionCtor) {
+    micBtn.disabled = true;
+    micBtn.textContent = '음성 입력 미지원';
+    micStatus.textContent = '이 브라우저는 음성 인식을 지원하지 않아요. Chrome에서 사용해보세요.';
+    return;
+  }
+
+  voice.recognition = new SpeechRecognitionCtor();
+  voice.recognition.lang = 'ko-KR';
+  voice.recognition.continuous = true;
+  voice.recognition.interimResults = true;
+
+  voice.recognition.addEventListener('result', (event) => {
+    let finalText = '';
+    let interimText = '';
+    for (let i = event.resultIndex; i < event.results.length; i += 1) {
+      const transcript = event.results[i][0].transcript;
+      if (event.results[i].isFinal) finalText += transcript;
+      else interimText += transcript;
+    }
+    if (finalText) voice.baseText += finalText;
+    const input = document.getElementById('answer-input');
+    input.value = (voice.baseText + interimText).trim();
+    document.getElementById('char-count').textContent = input.value.length;
+  });
+
+  voice.recognition.addEventListener('end', () => {
+    voice.recognizing = false;
+    updateMicButton();
+  });
+
+  voice.recognition.addEventListener('error', (event) => {
+    voice.recognizing = false;
+    updateMicButton();
+    micStatus.textContent = event.error === 'not-allowed'
+      ? '마이크 권한을 허용해주세요.'
+      : `음성 인식 오류: ${event.error}`;
+  });
+
+  micBtn.addEventListener('click', toggleVoiceInput);
+}
+
+function toggleVoiceInput() {
+  if (!voice.recognition) return;
+  if (voice.recognizing) {
+    voice.recognition.stop();
+    return;
+  }
+  const current = document.getElementById('answer-input').value;
+  voice.baseText = current ? `${current} ` : '';
+  voice.recognizing = true;
+  document.getElementById('mic-status').textContent = '듣고 있어요…';
+  voice.recognition.start();
+  updateMicButton();
+}
+
+function updateMicButton() {
+  const micBtn = document.getElementById('mic-btn');
+  const micStatus = document.getElementById('mic-status');
+  if (voice.recognizing) {
+    micBtn.classList.add('recording');
+    micBtn.textContent = '■ 중지';
+  } else {
+    micBtn.classList.remove('recording');
+    micBtn.textContent = '🎤 음성으로 입력';
+    if (micStatus.textContent === '듣고 있어요…') micStatus.textContent = '';
+  }
+}
+
+function resetVoiceInput() {
+  if (voice.recognizing && voice.recognition) {
+    voice.recognition.stop();
+  }
+  voice.baseText = '';
+  const micStatus = document.getElementById('mic-status');
+  if (micStatus) micStatus.textContent = '';
 }
 
 function submitAnswer() {
   const input = document.getElementById('answer-input');
   const text = input.value;
   stopTimer();
+  if (voice.recognizing && voice.recognition) voice.recognition.stop();
   const item = state.session[state.currentIndex];
   const { score, feedback, missing } = analyzeAnswer(item.question.category, text);
   item.answer = text;
@@ -296,4 +387,5 @@ document.getElementById('answer-input').addEventListener('input', (e) => {
 });
 
 renderCategoryGrid();
+setupSpeechRecognition();
 showView('home');
