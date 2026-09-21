@@ -309,11 +309,15 @@ const camera = {
   chunks: [],
   active: false,
   recordedUrl: null,
+  audioContext: null,
+  analyser: null,
+  volumeTimer: null,
+  volumeSamples: [],
 };
 
 function getSupportedVideoMimeType() {
   if (!window.MediaRecorder) return '';
-  const candidates = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'];
+  const candidates = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4'];
   return candidates.find((type) => MediaRecorder.isTypeSupported(type)) || '';
 }
 
@@ -329,6 +333,67 @@ function setupCamera() {
   camBtn.addEventListener('click', toggleCamera);
 }
 
+function startVolumeMonitor(stream) {
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  if (!AudioCtx || stream.getAudioTracks().length === 0) return;
+  camera.audioContext = new AudioCtx();
+  const source = camera.audioContext.createMediaStreamSource(stream);
+  camera.analyser = camera.audioContext.createAnalyser();
+  camera.analyser.fftSize = 2048;
+  source.connect(camera.analyser);
+
+  camera.volumeSamples = [];
+  const buffer = new Float32Array(camera.analyser.fftSize);
+  camera.volumeTimer = setInterval(() => {
+    camera.analyser.getFloatTimeDomainData(buffer);
+    let sumSquares = 0;
+    for (let i = 0; i < buffer.length; i += 1) sumSquares += buffer[i] * buffer[i];
+    camera.volumeSamples.push(Math.sqrt(sumSquares / buffer.length));
+  }, 150);
+}
+
+function stopVolumeMonitor() {
+  if (camera.volumeTimer) {
+    clearInterval(camera.volumeTimer);
+    camera.volumeTimer = null;
+  }
+  if (camera.audioContext) {
+    camera.audioContext.close();
+    camera.audioContext = null;
+  }
+  camera.analyser = null;
+}
+
+function analyzeVoiceAudio(samples) {
+  if (!samples || samples.length < 5) return [];
+  const avg = samples.reduce((sum, s) => sum + s, 0) / samples.length;
+  const variance = samples.reduce((sum, s) => sum + (s - avg) ** 2, 0) / samples.length;
+  const stdDev = Math.sqrt(variance);
+  const silenceRatio = samples.filter((s) => s < 0.02).length / samples.length;
+
+  const feedback = [];
+  if (silenceRatio > 0.35) {
+    feedback.push({
+      type: 'warn',
+      text: `답변 중 침묵 구간이 전체의 약 ${Math.round(silenceRatio * 100)}%였어요. 짧은 정리는 괜찮지만 너무 자주 끊기면 자신감이 없어 보일 수 있어요.`,
+    });
+  } else {
+    feedback.push({ type: 'good', text: '말이 끊기지 않고 비교적 매끄럽게 이어졌어요.' });
+  }
+
+  if (avg < 0.015) {
+    feedback.push({ type: 'tip', text: '목소리가 전반적으로 작게 녹음됐어요. 마이크에 조금 더 가까이서 또렷하게 말해보세요.' });
+  }
+
+  if (stdDev < 0.01) {
+    feedback.push({ type: 'tip', text: '목소리 톤이 비교적 단조로웠어요. 강조하고 싶은 부분에서 강약을 주면 더 설득력 있게 들려요.' });
+  } else {
+    feedback.push({ type: 'good', text: '목소리에 강약이 있어 듣기 좋았어요.' });
+  }
+
+  return feedback;
+}
+
 async function toggleCamera() {
   if (camera.active) {
     stopCamera();
@@ -339,9 +404,9 @@ async function toggleCamera() {
   const preview = document.getElementById('camera-preview');
 
   try {
-    camera.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+    camera.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
   } catch (error) {
-    camStatus.textContent = '카메라 권한을 허용해주세요. (카메라 없이도 연습은 계속할 수 있어요)';
+    camStatus.textContent = '카메라·마이크 권한을 허용해주세요. (카메라 없이도 연습은 계속할 수 있어요)';
     return;
   }
 
@@ -364,6 +429,7 @@ async function toggleCamera() {
     if (event.data && event.data.size > 0) camera.chunks.push(event.data);
   });
   camera.recorder.start();
+  startVolumeMonitor(camera.stream);
 }
 
 function stopCameraRecording() {
@@ -385,6 +451,7 @@ function stopCameraRecording() {
 function stopCamera() {
   const camBtn = document.getElementById('camera-btn');
   const preview = document.getElementById('camera-preview');
+  stopVolumeMonitor();
   if (camera.recorder && camera.recorder.state !== 'inactive') camera.recorder.stop();
   if (camera.stream) camera.stream.getTracks().forEach((track) => track.stop());
   camera.stream = null;
@@ -410,17 +477,21 @@ async function submitAnswer() {
   if (voice.recognizing && voice.recognition) voice.recognition.stop();
   const item = state.session[state.currentIndex];
   const { score, feedback, missing } = analyzeAnswer(item.question.category, text);
-  item.answer = text;
-  item.score = score;
-  item.feedback = feedback;
-  item.missing = missing;
-  item.seconds = state.timerSeconds;
 
-  const recordedUrl = camera.active ? await stopCameraRecording() : null;
+  const wasRecording = camera.active;
+  const recordedUrl = wasRecording ? await stopCameraRecording() : null;
+  const voiceFeedback = wasRecording ? analyzeVoiceAudio(camera.volumeSamples) : [];
   stopCamera();
   renderReplay(recordedUrl);
 
-  renderFeedback(score, feedback);
+  const combinedFeedback = feedback.concat(voiceFeedback);
+  item.answer = text;
+  item.score = score;
+  item.feedback = combinedFeedback;
+  item.missing = missing;
+  item.seconds = state.timerSeconds;
+
+  renderFeedback(score, combinedFeedback);
   showView('feedback');
   loadFollowUp(item, missing);
 }
