@@ -167,7 +167,20 @@ const voice = {
   recognition: null,
   recognizing: false,
   baseText: '',
+  stallTimer: null,
+  gotResult: false,
 };
+
+const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+const STALL_TIMEOUT_MS = 6000;
+const IOS_FALLBACK_MSG = '응답이 없어요. iOS Safari는 음성 인식이 불안정할 수 있어요 — 키보드의 마이크 아이콘으로 입력해보세요.';
+
+function clearStallTimer() {
+  if (voice.stallTimer) {
+    clearTimeout(voice.stallTimer);
+    voice.stallTimer = null;
+  }
+}
 
 function setupSpeechRecognition() {
   const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -181,12 +194,18 @@ function setupSpeechRecognition() {
     return;
   }
 
+  if (IS_IOS) {
+    micStatus.textContent = 'iOS Safari는 음성 인식이 불안정할 수 있어요. 안 되면 키보드의 마이크 아이콘을 써보세요.';
+  }
+
   voice.recognition = new SpeechRecognitionCtor();
   voice.recognition.lang = 'ko-KR';
   voice.recognition.continuous = true;
   voice.recognition.interimResults = true;
 
   voice.recognition.addEventListener('result', (event) => {
+    voice.gotResult = true;
+    clearStallTimer();
     let finalText = '';
     let interimText = '';
     for (let i = event.resultIndex; i < event.results.length; i += 1) {
@@ -201,16 +220,22 @@ function setupSpeechRecognition() {
   });
 
   voice.recognition.addEventListener('end', () => {
+    clearStallTimer();
     voice.recognizing = false;
     updateMicButton();
   });
 
   voice.recognition.addEventListener('error', (event) => {
+    clearStallTimer();
     voice.recognizing = false;
     updateMicButton();
-    micStatus.textContent = event.error === 'not-allowed'
-      ? '마이크 권한을 허용해주세요.'
-      : `음성 인식 오류: ${event.error}`;
+    if (event.error === 'not-allowed') {
+      micStatus.textContent = '마이크 권한을 허용해주세요.';
+    } else if (IS_IOS) {
+      micStatus.textContent = IOS_FALLBACK_MSG;
+    } else {
+      micStatus.textContent = `음성 인식 오류: ${event.error}`;
+    }
   });
 
   micBtn.addEventListener('click', toggleVoiceInput);
@@ -219,15 +244,33 @@ function setupSpeechRecognition() {
 function toggleVoiceInput() {
   if (!voice.recognition) return;
   if (voice.recognizing) {
+    clearStallTimer();
     voice.recognition.stop();
     return;
   }
   const current = document.getElementById('answer-input').value;
   voice.baseText = current ? `${current} ` : '';
   voice.recognizing = true;
+  voice.gotResult = false;
   document.getElementById('mic-status').textContent = '듣고 있어요…';
   voice.recognition.start();
   updateMicButton();
+
+  clearStallTimer();
+  voice.stallTimer = setTimeout(() => {
+    if (voice.recognizing && !voice.gotResult) {
+      try {
+        voice.recognition.stop();
+      } catch (e) {
+        /* already stopped */
+      }
+      voice.recognizing = false;
+      updateMicButton();
+      document.getElementById('mic-status').textContent = IS_IOS
+        ? IOS_FALLBACK_MSG
+        : '응답이 없어요. 다시 시도하거나 직접 입력해주세요.';
+    }
+  }, STALL_TIMEOUT_MS);
 }
 
 function updateMicButton() {
@@ -244,12 +287,18 @@ function updateMicButton() {
 }
 
 function resetVoiceInput() {
+  clearStallTimer();
   if (voice.recognizing && voice.recognition) {
     voice.recognition.stop();
   }
+  voice.recognizing = false;
   voice.baseText = '';
   const micStatus = document.getElementById('mic-status');
-  if (micStatus) micStatus.textContent = '';
+  if (micStatus) {
+    micStatus.textContent = IS_IOS && voice.recognition
+      ? 'iOS Safari는 음성 인식이 불안정할 수 있어요. 안 되면 키보드의 마이크 아이콘을 써보세요.'
+      : '';
+  }
 }
 
 function submitAnswer() {
