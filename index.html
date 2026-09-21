@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>면접 대비 연습</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+  <header class="app-header">
+    <h1>면접 대비 연습</h1>
+    <nav>
+      <button id="nav-home" class="nav-btn active">연습 시작</button>
+      <button id="nav-history" class="nav-btn">기록 보기</button>
+    </nav>
+  </header>
+
+  <main id="view-home" class="view">
+    <h2>연습할 카테고리를 선택하세요</h2>
+    <div class="category-grid" id="category-grid"></div>
+
+    <div class="option-row">
+      <label for="question-count">질문 개수</label>
+      <select id="question-count">
+        <option value="3">3개</option>
+        <option value="5" selected>5개</option>
+        <option value="8">8개</option>
+      </select>
+    </div>
+
+    <button id="start-btn" class="primary-btn">연습 시작하기</button>
+  </main>
+
+  <main id="view-practice" class="view hidden">
+    <div class="progress-row">
+      <span id="progress-label">1 / 5</span>
+      <span id="timer-label">00:00</span>
+    </div>
+    <div class="question-card">
+      <span id="question-category" class="tag"></span>
+      <p id="question-text"></p>
+    </div>
+    <textarea id="answer-input" placeholder="답변을 입력하세요. 구체적인 상황, 본인의 행동, 결과를 포함하면 더 좋은 피드백을 받을 수 있어요."></textarea>
+    <div class="char-count"><span id="char-count">0</span>자</div>
+    <button id="submit-answer-btn" class="primary-btn">피드백 받기</button>
+  </main>
+
+  <main id="view-feedback" class="view hidden">
+    <div class="score-card">
+      <div class="score-circle" id="score-circle">
+        <span id="score-value">0</span>
+      </div>
+      <p id="score-label">점수</p>
+    </div>
+    <ul id="feedback-list" class="feedback-list"></ul>
+    <div class="followup-card hidden" id="followup-card">
+      <p class="followup-title">꼬리질문</p>
+      <p id="followup-text"></p>
+    </div>
+    <button id="next-btn" class="primary-btn">다음 질문</button>
+  </main>
+
+  <main id="view-summary" class="view hidden">
+    <h2>연습 결과 요약</h2>
+    <p id="summary-average" class="summary-average"></p>
+    <ul id="summary-list" class="summary-list"></ul>
+    <button id="restart-btn" class="primary-btn">새 연습 시작하기</button>
+  </main>
+
+  <main id="view-history" class="view hidden">
+    <h2>연습 기록</h2>
+    <ul id="history-list" class="history-list"></ul>
+    <p id="history-empty" class="hidden">아직 연습 기록이 없습니다.</p>
+  </main>
+</div>
+<script src="questions.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
