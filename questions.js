@@ -2,6 +2,7 @@ const CATEGORIES = [
   { id: 'personality', label: '인성' },
   { id: 'technical', label: '기술/직무' },
   { id: 'situational', label: '상황/경험' },
+  { id: 'nh_audit', label: '농협 전산점검역' },
 ];
 
 const QUESTIONS = [
@@ -25,6 +26,17 @@ const QUESTIONS = [
   { id: 's4', category: 'situational', text: '상사나 동료와 의견 충돌이 있었던 경험을 말씀해주세요.' },
   { id: 's5', category: 'situational', text: '예상치 못한 문제가 발생했을 때 대처했던 경험을 말씀해주세요.' },
   { id: 's6', category: 'situational', text: '리더십을 발휘했던 경험이 있다면 말씀해주세요.' },
+
+  { id: 'nh1', category: 'nh_audit', text: '오랜 은행·금융감독기관 경력을 마무리하고 전산점검역(계약직)에 지원하신 이유는 무엇인가요?' },
+  { id: 'nh2', category: 'nh_audit', text: '자점감사자로서 업무를 수행할 때 가장 중요하게 생각하는 원칙이나 자세는 무엇인가요?' },
+  { id: 'nh3', category: 'nh_audit', text: '일일 전산점검(자점감사) 업무를 수행할 때 어떤 절차와 기준으로 점검 항목을 확인하시나요?' },
+  { id: 'nh4', category: 'nh_audit', text: '전산 로그나 거래 데이터에서 이상 징후를 어떻게 식별하고 검증하시나요?' },
+  { id: 'nh5', category: 'nh_audit', text: '최근 금융권에서 발생하는 전산·내부통제 사고 유형과 그에 대한 대응 방안에 대해 설명해주세요.' },
+  { id: 'nh6', category: 'nh_audit', text: '보유하신 자격증이나 경력이 실제 점검·감사 업무에 어떻게 도움이 되었는지 설명해주세요.' },
+  { id: 'nh7', category: 'nh_audit', text: '점검 또는 감사 업무 중 중대한 규정 위반이나 이상 거래를 발견했던 경험과, 그때 어떻게 대처했는지 말씀해주세요.' },
+  { id: 'nh8', category: 'nh_audit', text: '점검 대상 영업점 직원과 감사자로서 입장이 부딪혔던 상황이 있다면, 어떻게 해결하셨나요?' },
+  { id: 'nh9', category: 'nh_audit', text: '제한된 시간 안에 여러 점검 항목을 처리해야 했던 경험과, 우선순위를 어떻게 정했는지 설명해주세요.' },
+  { id: 'nh10', category: 'nh_audit', text: '본인의 판단과 조직(영업점 또는 상급자)의 입장이 다를 때, 감사자로서 어떻게 균형을 맞추시나요?' },
 ];
 
 const FOLLOW_UPS = {
