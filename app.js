@@ -60,7 +60,7 @@ function analyzeAnswer(category, rawText) {
     }
   }
 
-  score = Math.max(45, Math.min(100, Math.round(score)));
+  score = Math.max(70, Math.min(100, Math.round(score)));
   return { score, feedback, missing };
 }
 
@@ -451,7 +451,7 @@ function analyzeVoiceAudio(samples) {
     feedback.push({ type: 'good', text: '목소리에 강약이 있어 듣기 좋았어요.' });
   }
 
-  score = Math.max(45, Math.min(100, Math.round(score)));
+  score = Math.max(70, Math.min(100, Math.round(score)));
   return { score, feedback };
 }
 
