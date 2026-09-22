@@ -37,6 +37,15 @@ const QUESTIONS = [
   { id: 'nh8', category: 'nh_audit', text: '점검 대상 영업점 직원과 감사자로서 입장이 부딪혔던 상황이 있다면, 어떻게 해결하셨나요?' },
   { id: 'nh9', category: 'nh_audit', text: '제한된 시간 안에 여러 점검 항목을 처리해야 했던 경험과, 우선순위를 어떻게 정했는지 설명해주세요.' },
   { id: 'nh10', category: 'nh_audit', text: '본인의 판단과 조직(영업점 또는 상급자)의 입장이 다를 때, 감사자로서 어떻게 균형을 맞추시나요?' },
+
+  { id: 'nh11', category: 'nh_audit', text: '정년(또는 명예)퇴직 후 계약직으로 다시 일하게 되는 것에 대해 어떤 마음가짐을 가지고 계신가요?' },
+  { id: 'nh12', category: 'nh_audit', text: '이전 직장에서보다 직급이나 권한이 낮아지는 부분에 대해 어떻게 받아들이고 계신가요?' },
+  { id: 'nh13', category: 'nh_audit', text: '본인보다 나이나 직급이 어린 상급자, 동료와 함께 일해야 하는 상황에 대해 어떻게 생각하시나요?' },
+  { id: 'nh14', category: 'nh_audit', text: '재입사를 결심하게 된 개인적인 동기는 무엇인가요?' },
+  { id: 'nh15', category: 'nh_audit', text: '오랜 조직 생활에서 몸에 밴 업무 방식이나 습관 중, 새로운 조직에 맞춰 바꿔야 한다고 생각하는 부분이 있나요?' },
+  { id: 'nh16', category: 'nh_audit', text: '이 계약직 역할을 통해 앞으로 몇 년간, 어떤 모습으로 일하고 싶으신가요?' },
+  { id: 'nh17', category: 'nh_audit', text: '과거 정규직·고위직으로 일하셨던 경력과 지금 지원하시는 계약직 역할 사이의 차이를 어떻게 받아들이고 계신가요?' },
+  { id: 'nh18', category: 'nh_audit', text: '재입사 후 조직 문화나 시스템이 예전과 다르다면, 어떻게 적응해 나가실 계획인가요?' },
 ];
 
 const FOLLOW_UPS = {
