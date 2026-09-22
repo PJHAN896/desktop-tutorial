@@ -365,33 +365,41 @@ function stopVolumeMonitor() {
 }
 
 function analyzeVoiceAudio(samples) {
-  if (!samples || samples.length < 5) return [];
+  if (!samples || samples.length < 5) return { score: 0, feedback: [] };
   const avg = samples.reduce((sum, s) => sum + s, 0) / samples.length;
   const variance = samples.reduce((sum, s) => sum + (s - avg) ** 2, 0) / samples.length;
   const stdDev = Math.sqrt(variance);
   const silenceRatio = samples.filter((s) => s < 0.02).length / samples.length;
 
   const feedback = [];
+  let score = 70;
+
   if (silenceRatio > 0.35) {
+    score -= Math.min(30, Math.round((silenceRatio - 0.35) * 80));
     feedback.push({
       type: 'warn',
       text: `답변 중 침묵 구간이 전체의 약 ${Math.round(silenceRatio * 100)}%였어요. 짧은 정리는 괜찮지만 너무 자주 끊기면 자신감이 없어 보일 수 있어요.`,
     });
   } else {
+    score += 10;
     feedback.push({ type: 'good', text: '말이 끊기지 않고 비교적 매끄럽게 이어졌어요.' });
   }
 
   if (avg < 0.015) {
+    score -= 10;
     feedback.push({ type: 'tip', text: '목소리가 전반적으로 작게 녹음됐어요. 마이크에 조금 더 가까이서 또렷하게 말해보세요.' });
   }
 
   if (stdDev < 0.01) {
+    score -= 5;
     feedback.push({ type: 'tip', text: '목소리 톤이 비교적 단조로웠어요. 강조하고 싶은 부분에서 강약을 주면 더 설득력 있게 들려요.' });
   } else {
+    score += 10;
     feedback.push({ type: 'good', text: '목소리에 강약이 있어 듣기 좋았어요.' });
   }
 
-  return feedback;
+  score = Math.max(0, Math.min(100, Math.round(score)));
+  return { score, feedback };
 }
 
 function describeMediaError(error) {
@@ -493,18 +501,37 @@ function resetReplay() {
 async function submitAnswer() {
   const input = document.getElementById('answer-input');
   const text = input.value;
+  const hasText = text.trim().length > 0;
   stopTimer();
   if (voice.recognizing && voice.recognition) voice.recognition.stop();
   const item = state.session[state.currentIndex];
-  const { score, feedback, missing } = analyzeAnswer(item.question.category, text);
 
   const wasRecording = camera.active;
   const recordedUrl = wasRecording ? await stopCameraRecording() : null;
-  const voiceFeedback = wasRecording ? analyzeVoiceAudio(camera.volumeSamples) : [];
+  const voiceResult = wasRecording ? analyzeVoiceAudio(camera.volumeSamples) : null;
   stopCamera();
   renderReplay(recordedUrl);
 
-  const combinedFeedback = feedback.concat(voiceFeedback);
+  let score;
+  let combinedFeedback;
+  let missing;
+  if (!hasText && voiceResult) {
+    score = voiceResult.score;
+    missing = [];
+    combinedFeedback = [
+      {
+        type: 'tip',
+        text: '영상으로 답변하셨네요! 목소리 전달력을 기준으로 피드백을 드려요. 답변 내용까지 분석하려면 "🎤 음성으로 입력"으로 텍스트도 함께 남겨보세요.',
+      },
+      ...voiceResult.feedback,
+    ];
+  } else {
+    const analyzed = analyzeAnswer(item.question.category, text);
+    score = analyzed.score;
+    missing = analyzed.missing;
+    combinedFeedback = voiceResult ? analyzed.feedback.concat(voiceResult.feedback) : analyzed.feedback;
+  }
+
   item.answer = text;
   item.score = score;
   item.feedback = combinedFeedback;
