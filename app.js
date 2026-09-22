@@ -8,31 +8,31 @@ function analyzeAnswer(category, rawText) {
   const text = rawText.trim();
   const length = text.length;
   const feedback = [];
-  let score = 70;
+  let score = 80;
 
   if (length === 0) {
     return { score: 0, feedback: [{ type: 'warn', text: '답변이 비어 있습니다. 내용을 입력해주세요.' }], missing: ['situation', 'action', 'result'] };
   }
 
   if (length < 40) {
-    score -= 30;
+    score -= 12;
     feedback.push({ type: 'warn', text: '답변이 다소 짧습니다. 구체적인 상황과 예시를 더 추가해보세요.' });
   } else if (length > 800) {
-    score -= 10;
+    score -= 5;
     feedback.push({ type: 'warn', text: '답변이 다소 깁니다. 핵심만 간결하게 정리해보세요.' });
   } else {
-    score += 10;
+    score += 8;
     feedback.push({ type: 'good', text: '답변 길이가 적절합니다.' });
   }
 
   const fillerHit = FILLER_WORDS.find((f) => text.includes(f));
   if (fillerHit) {
-    score -= 10;
+    score -= 5;
     feedback.push({ type: 'warn', text: `"${fillerHit}"와 같은 군더더기 표현이 보입니다. 문장을 다듬으면 더 깔끔해집니다.` });
   }
 
   if (NUMBER_PATTERN.test(text)) {
-    score += 10;
+    score += 8;
     feedback.push({ type: 'good', text: '구체적인 수치나 데이터를 언급해 답변의 설득력을 높였습니다.' });
   } else {
     feedback.push({ type: 'tip', text: '가능하다면 구체적인 수치나 성과를 덧붙이면 더 설득력이 높아집니다.' });
@@ -48,11 +48,11 @@ function analyzeAnswer(category, rawText) {
     if (!hasResult) missing.push('result');
 
     if (missing.length === 0) {
-      score += 10;
+      score += 8;
       feedback.push({ type: 'good', text: '상황(Situation)-행동(Action)-결과(Result)의 흐름이 잘 드러납니다.' });
     } else {
       const labels = { situation: '상황', action: '행동', result: '결과' };
-      score -= missing.length * 12;
+      score -= missing.length * 6;
       feedback.push({
         type: 'warn',
         text: `STAR 구조 중 ${missing.map((m) => labels[m]).join(', ')} 부분이 부족해 보입니다. 이 부분을 보강하면 답변이 훨씬 설득력 있어집니다.`,
@@ -60,7 +60,7 @@ function analyzeAnswer(category, rawText) {
     }
   }
 
-  score = Math.max(0, Math.min(100, Math.round(score)));
+  score = Math.max(45, Math.min(100, Math.round(score)));
   return { score, feedback, missing };
 }
 
@@ -425,33 +425,33 @@ function analyzeVoiceAudio(samples) {
   const silenceRatio = samples.filter((s) => s < 0.02).length / samples.length;
 
   const feedback = [];
-  let score = 70;
+  let score = 80;
 
   if (silenceRatio > 0.35) {
-    score -= Math.min(30, Math.round((silenceRatio - 0.35) * 80));
+    score -= Math.min(18, Math.round((silenceRatio - 0.35) * 45));
     feedback.push({
       type: 'warn',
       text: `답변 중 침묵 구간이 전체의 약 ${Math.round(silenceRatio * 100)}%였어요. 짧은 정리는 괜찮지만 너무 자주 끊기면 자신감이 없어 보일 수 있어요.`,
     });
   } else {
-    score += 10;
+    score += 8;
     feedback.push({ type: 'good', text: '말이 끊기지 않고 비교적 매끄럽게 이어졌어요.' });
   }
 
   if (avg < 0.015) {
-    score -= 10;
+    score -= 5;
     feedback.push({ type: 'tip', text: '목소리가 전반적으로 작게 녹음됐어요. 마이크에 조금 더 가까이서 또렷하게 말해보세요.' });
   }
 
   if (stdDev < 0.01) {
-    score -= 5;
+    score -= 3;
     feedback.push({ type: 'tip', text: '목소리 톤이 비교적 단조로웠어요. 강조하고 싶은 부분에서 강약을 주면 더 설득력 있게 들려요.' });
   } else {
-    score += 10;
+    score += 8;
     feedback.push({ type: 'good', text: '목소리에 강약이 있어 듣기 좋았어요.' });
   }
 
-  score = Math.max(0, Math.min(100, Math.round(score)));
+  score = Math.max(45, Math.min(100, Math.round(score)));
   return { score, feedback };
 }
 
