@@ -1,6 +1,6 @@
 const CATEGORIES = [
   { id: 'personality', label: '인성' },
-  { id: 'technical', label: '기술/직무' },
+  { id: 'technical', label: '직무 역량' },
   { id: 'situational', label: '상황/경험' },
   { id: 'nh_audit', label: '농협 전산점검역' },
 ];
@@ -13,12 +13,12 @@ const QUESTIONS = [
   { id: 'p5', category: 'personality', text: '스트레스를 받을 때 어떻게 해소하나요?' },
   { id: 'p6', category: 'personality', text: '팀워크에서 본인의 역할은 무엇이라고 생각하나요?' },
 
-  { id: 't1', category: 'technical', text: '본인이 가장 자신 있는 기술 스택은 무엇이고, 그 이유는 무엇인가요?' },
-  { id: 't2', category: 'technical', text: '최근에 새로 배운 기술이나 개념을 소개해주세요.' },
-  { id: 't3', category: 'technical', text: '코드 리뷰에서 중요하게 생각하는 기준은 무엇인가요?' },
-  { id: 't4', category: 'technical', text: '기술적으로 어려웠던 문제를 어떻게 해결했는지 설명해주세요.' },
-  { id: 't5', category: 'technical', text: '새로운 기술을 도입할 때 어떤 요소를 고려하나요?' },
-  { id: 't6', category: 'technical', text: '본인의 개발 프로세스(설계-구현-테스트)를 설명해주세요.' },
+  { id: 't1', category: 'technical', text: '본인이 가장 자신 있는 업무 역량은 무엇이고, 그 이유는 무엇인가요?' },
+  { id: 't2', category: 'technical', text: '최근에 새로 습득한 지식이나 기술이 있다면 소개해주세요.' },
+  { id: 't3', category: 'technical', text: '업무를 검토받거나 피드백을 받을 때 중요하게 생각하는 기준은 무엇인가요?' },
+  { id: 't4', category: 'technical', text: '업무상 어려웠던 문제를 어떻게 해결했는지 설명해주세요.' },
+  { id: 't5', category: 'technical', text: '새로운 시스템이나 프로세스를 도입할 때 어떤 요소를 고려하나요?' },
+  { id: 't6', category: 'technical', text: '본인의 업무 처리 방식(계획-실행-점검)을 설명해주세요.' },
 
   { id: 's1', category: 'situational', text: '팀 내 갈등을 해결했던 경험을 말씀해주세요.' },
   { id: 's2', category: 'situational', text: '실패했던 프로젝트 경험과 그로부터 배운 점을 말씀해주세요.' },
