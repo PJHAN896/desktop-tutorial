@@ -161,8 +161,43 @@ function showQuestion() {
   resetVoiceInput();
   stopCamera();
   resetReplay();
+  startPrep();
+}
+
+const PREP_SECONDS = 30;
+const prep = { timerId: null, secondsLeft: PREP_SECONDS };
+
+function stopPrepTimer() {
+  if (prep.timerId) {
+    clearInterval(prep.timerId);
+    prep.timerId = null;
+  }
+}
+
+function startPrep() {
+  const prepCard = document.getElementById('prep-card');
+  const answerArea = document.getElementById('answer-area');
+  const countdownEl = document.getElementById('prep-countdown');
+
+  stopPrepTimer();
+  prepCard.classList.remove('hidden');
+  answerArea.classList.add('hidden');
+  prep.secondsLeft = PREP_SECONDS;
+  countdownEl.textContent = prep.secondsLeft;
+
+  prep.timerId = setInterval(() => {
+    prep.secondsLeft -= 1;
+    countdownEl.textContent = prep.secondsLeft;
+    if (prep.secondsLeft <= 0) endPrep();
+  }, 1000);
+}
+
+function endPrep() {
+  stopPrepTimer();
+  document.getElementById('prep-card').classList.add('hidden');
+  document.getElementById('answer-area').classList.remove('hidden');
   startTimer();
-  input.focus();
+  document.getElementById('answer-input').focus();
 }
 
 const voice = {
@@ -681,16 +716,19 @@ function renderHistory() {
 }
 
 document.getElementById('nav-home').addEventListener('click', () => {
+  stopPrepTimer();
   stopCamera();
   showView('home');
 });
 document.getElementById('nav-history').addEventListener('click', () => {
+  stopPrepTimer();
   stopCamera();
   renderHistory();
   showView('history');
 });
 document.getElementById('start-btn').addEventListener('click', startSession);
 document.getElementById('submit-answer-btn').addEventListener('click', submitAnswer);
+document.getElementById('skip-prep-btn').addEventListener('click', endPrep);
 document.getElementById('next-btn').addEventListener('click', goNext);
 document.getElementById('restart-btn').addEventListener('click', () => showView('home'));
 document.getElementById('answer-input').addEventListener('input', (e) => {

@@ -189,6 +189,30 @@ nav {
   border-radius: 999px;
 }
 
+.prep-card {
+  background: var(--card-bg);
+  border-radius: 20px;
+  padding: 32px 24px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-md);
+  text-align: center;
+}
+
+.prep-label {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.prep-countdown {
+  font-size: 56px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 20px;
+  font-variant-numeric: tabular-nums;
+}
+
 textarea#answer-input {
   width: 100%;
   min-height: 180px;
