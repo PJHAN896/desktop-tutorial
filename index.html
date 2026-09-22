@@ -24,6 +24,14 @@
     <div class="category-grid" id="category-grid"></div>
 
     <div class="option-row">
+      <label>답변 방식</label>
+      <div class="mode-toggle" id="mode-toggle">
+        <button type="button" class="mode-btn active" data-mode="text">⌨️ 텍스트</button>
+        <button type="button" class="mode-btn" data-mode="video">📹 영상(카메라)</button>
+      </div>
+    </div>
+
+    <div class="option-row">
       <label for="question-count">질문 개수</label>
       <select id="question-count">
         <option value="3">3개</option>
@@ -51,11 +59,13 @@
     </div>
 
     <div class="answer-area hidden" id="answer-area">
-      <div class="camera-row">
-        <button id="camera-btn" type="button" class="camera-btn">📹 카메라로 연습하기</button>
-        <span id="camera-status" class="camera-status"></span>
+      <div class="camera-section hidden" id="camera-section">
+        <div class="camera-row">
+          <button id="camera-btn" type="button" class="camera-btn">📹 카메라로 연습하기</button>
+          <span id="camera-status" class="camera-status"></span>
+        </div>
+        <video id="camera-preview" class="camera-preview hidden" autoplay muted playsinline></video>
       </div>
-      <video id="camera-preview" class="camera-preview hidden" autoplay muted playsinline></video>
       <div class="voice-row">
         <button id="mic-btn" type="button" class="mic-btn">🎤 음성으로 입력</button>
         <span id="mic-status" class="mic-status"></span>

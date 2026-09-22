@@ -139,6 +139,33 @@ nav {
 
 .option-row select:focus { box-shadow: 0 0 0 3px var(--accent-light), var(--shadow-sm); outline: none; }
 
+.mode-toggle {
+  display: flex;
+  gap: 4px;
+  background: var(--card-bg);
+  padding: 4px;
+  border-radius: 999px;
+  box-shadow: var(--shadow-sm);
+}
+
+.mode-btn {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.mode-btn.active {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(106, 92, 240, 0.35);
+}
+
 .primary-btn {
   width: 100%;
   padding: 15px;

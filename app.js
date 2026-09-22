@@ -77,7 +77,18 @@ const state = {
   currentFeedback: null,
   timerId: null,
   timerSeconds: 0,
+  answerMode: 'text',
 };
+
+function setupModeToggle() {
+  const buttons = Array.from(document.querySelectorAll('#mode-toggle .mode-btn'));
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      state.answerMode = btn.dataset.mode;
+      buttons.forEach((b) => b.classList.toggle('active', b === btn));
+    });
+  });
+}
 
 const views = {
   home: document.getElementById('view-home'),
@@ -192,10 +203,17 @@ function startPrep() {
   }, 1000);
 }
 
-function endPrep() {
+async function endPrep() {
   stopPrepTimer();
   document.getElementById('prep-card').classList.add('hidden');
   document.getElementById('answer-area').classList.remove('hidden');
+  const cameraSection = document.getElementById('camera-section');
+  if (state.answerMode === 'video') {
+    cameraSection.classList.remove('hidden');
+    if (!camera.active) await toggleCamera();
+  } else {
+    cameraSection.classList.add('hidden');
+  }
   startTimer();
   document.getElementById('answer-input').focus();
 }
@@ -736,6 +754,7 @@ document.getElementById('answer-input').addEventListener('input', (e) => {
 });
 
 renderCategoryGrid();
+setupModeToggle();
 setupSpeechRecognition();
 setupCamera();
 showView('home');
